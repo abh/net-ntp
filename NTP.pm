@@ -10,72 +10,73 @@ require Exporter;
 our @ISA = qw(Exporter);
 
 our @EXPORT = qw(
-	get_ntp_response
+  get_ntp_response
 );
 
 our $VERSION = '1.2_50';
 
-our $CLIENT_TIME_SEND = undef;
+our $CLIENT_TIME_SEND    = undef;
 our $CLIENT_TIME_RECEIVE = undef;
 
 our $TIMEOUT = 60,
 
-our %MODE = (
-      '0'    =>    'reserved',
-      '1'    =>    'symmetric active',
-      '2'    =>    'symmetric passive',
-      '3'    =>    'client',
-      '4'    =>    'server',
-      '5'    =>    'broadcast',
-      '6'    =>    'reserved for NTP control message',
-      '7'    =>    'reserved for private use'
-);
+  our %MODE = (
+    '0' => 'reserved',
+    '1' => 'symmetric active',
+    '2' => 'symmetric passive',
+    '3' => 'client',
+    '4' => 'server',
+    '5' => 'broadcast',
+    '6' => 'reserved for NTP control message',
+    '7' => 'reserved for private use'
+  );
 
 our %STRATUM = (
-      '0'          =>    'unspecified or unavailable',
-      '1'          =>    'primary reference (e.g., radio clock)',
+    '0' => 'unspecified or unavailable',
+    '1' => 'primary reference (e.g., radio clock)',
 );
 
-for(2 .. 15){
+for (2 .. 15) {
     $STRATUM{$_} = 'secondary reference (via NTP or SNTP)';
 }
 
-for(16 .. 255){
+for (16 .. 255) {
     $STRATUM{$_} = 'reserved';
 }
 
 our %STRATUM_ONE_TEXT = (
-    'LOCL'    => 'uncalibrated local clock used as a primary reference for a subnet without external means of synchronization',
-    'PPS'     => 'atomic clock or other pulse-per-second source individually calibrated to national standards',
-    'ACTS'  => 'NIST dialup modem service',
-    'USNO'  => 'USNO modem service',
-    'PTB'   => 'PTB (Germany) modem service',
-    'TDF'   => 'Allouis (France) Radio 164 kHz',
-    'DCF'   => 'Mainflingen (Germany) Radio 77.5 kHz',
-    'MSF'   => 'Rugby (UK) Radio 60 kHz',
-    'WWV'   => 'Ft. Collins (US) Radio 2.5, 5, 10, 15, 20 MHz',
-    'WWVB'  => 'Boulder (US) Radio 60 kHz',
-    'WWVH'  => 'Kaui Hawaii (US) Radio 2.5, 5, 10, 15 MHz',
-    'CHU'   => 'Ottawa (Canada) Radio 3330, 7335, 14670 kHz',
-    'LORC'  => 'LORAN-C radionavigation system',
-    'OMEG'  => 'OMEGA radionavigation system',
-    'GPS'   => 'Global Positioning Service',
-    'GOES'  => 'Geostationary Orbit Environment Satellite',
+    'LOCL' =>
+      'uncalibrated local clock used as a primary reference for a subnet without external means of synchronization',
+    'PPS' =>
+      'atomic clock or other pulse-per-second source individually calibrated to national standards',
+    'ACTS' => 'NIST dialup modem service',
+    'USNO' => 'USNO modem service',
+    'PTB'  => 'PTB (Germany) modem service',
+    'TDF'  => 'Allouis (France) Radio 164 kHz',
+    'DCF'  => 'Mainflingen (Germany) Radio 77.5 kHz',
+    'MSF'  => 'Rugby (UK) Radio 60 kHz',
+    'WWV'  => 'Ft. Collins (US) Radio 2.5, 5, 10, 15, 20 MHz',
+    'WWVB' => 'Boulder (US) Radio 60 kHz',
+    'WWVH' => 'Kaui Hawaii (US) Radio 2.5, 5, 10, 15 MHz',
+    'CHU'  => 'Ottawa (Canada) Radio 3330, 7335, 14670 kHz',
+    'LORC' => 'LORAN-C radionavigation system',
+    'OMEG' => 'OMEGA radionavigation system',
+    'GPS'  => 'Global Positioning Service',
+    'GOES' => 'Geostationary Orbit Environment Satellite',
 );
 
 our %LEAP_INDICATOR = (
-      '0'    =>     'no warning',
-      '1'    =>     'last minute has 61 seconds',
-      '2'    =>     'last minute has 59 seconds)',
-      '3'    =>     'alarm condition (clock not synchronized)'
+    '0' => 'no warning',
+    '1' => 'last minute has 61 seconds',
+    '2' => 'last minute has 59 seconds)',
+    '3' => 'alarm condition (clock not synchronized)'
 );
 
 {
 
     use constant NTP_ADJ => 2208988800;
 
-    my @ntp_packet_fields = 
-    (
+    my @ntp_packet_fields = (
         'Leap Indicator',
         'Version Number',
         'Mode',
@@ -94,9 +95,9 @@ our %LEAP_INDICATOR = (
     my $frac2bin = sub {
         my $bin  = '';
         my $frac = shift;
-        while ( length($bin) < 32 ) {
-            $bin  = $bin . int( $frac * 2 );
-            $frac = ( $frac * 2 ) - ( int( $frac * 2 ) );
+        while (length($bin) < 32) {
+            $bin = $bin . int($frac * 2);
+            $frac = ($frac * 2) - (int($frac * 2));
         }
         return $bin;
     };
@@ -105,14 +106,14 @@ our %LEAP_INDICATOR = (
         my @bin = split '', shift;
         my $frac = 0;
         while (@bin) {
-            $frac = ( $frac + pop @bin ) / 2;
+            $frac = ($frac + pop @bin) / 2;
         }
         return $frac;
     };
 
-    my $percision = sub{
+    my $percision = sub {
         my $number = shift;
-        if($number > 127){
+        if ($number > 127) {
             $number -= 255;
         }
         return sprintf("%1.4e", 2**$number);
@@ -121,92 +122,85 @@ our %LEAP_INDICATOR = (
     my $unpack_ip = sub {
         my $ip;
         my $stratum = shift;
-        my $tmp_ip = shift;
-        if($stratum < 2){
-            $ip = unpack("A4", 
-                pack("H8", $tmp_ip)
-            );
-        }else{
-            $ip = sprintf("%d.%d.%d.%d",
-                unpack("C4",
-                    pack("H8", $tmp_ip)
-                )
-            );
+        my $tmp_ip  = shift;
+        if ($stratum < 2) {
+            $ip = unpack("A4", pack("H8", $tmp_ip));
+        }
+        else {
+            $ip = sprintf("%d.%d.%d.%d", unpack("C4", pack("H8", $tmp_ip)));
         }
         return $ip;
     };
 
-sub get_ntp_response{
-    use IO::Socket;
+    sub get_ntp_response {
+        use IO::Socket;
 
-    my $host = shift || 'localhost';
-    my $port = shift || 'ntp';
+        my $host = shift || 'localhost';
+        my $port = shift || 'ntp';
 
-    my $sock = IO::Socket::INET->new(
-        Proto    => 'udp',
-        PeerHost => $host,
-        PeerPort => $port ) 
-    or die $@;
+        my $sock = IO::Socket::INET->new(
+            Proto    => 'udp',
+            PeerHost => $host,
+            PeerPort => $port
+        ) or die $@;
 
-    my %tmp_pkt;
-    my %packet;
-    my $data;
+        my %tmp_pkt;
+        my %packet;
+        my $data;
 
 
-    $CLIENT_TIME_SEND = time() unless defined $CLIENT_TIME_SEND;
-    my $client_localtime      = $CLIENT_TIME_SEND;
-    my $client_adj_localtime  = $client_localtime + NTP_ADJ;
-    my $client_frac_localtime = $frac2bin->($client_adj_localtime);
+        $CLIENT_TIME_SEND = time() unless defined $CLIENT_TIME_SEND;
+        my $client_localtime      = $CLIENT_TIME_SEND;
+        my $client_adj_localtime  = $client_localtime + NTP_ADJ;
+        my $client_frac_localtime = $frac2bin->($client_adj_localtime);
 
-    my $ntp_msg =
-      pack( "B8 C3 N10 B32", '00011011', (0) x 12, int($client_localtime),
-      $client_frac_localtime );
+        my $ntp_msg = pack("B8 C3 N10 B32",
+            '00011011', (0) x 12, int($client_localtime), $client_frac_localtime);
 
-    $sock->send($ntp_msg)
-        or die "send() failed: $!\n";
+        $sock->send($ntp_msg)
+          or die "send() failed: $!\n";
 
-    eval{
-    local $SIG{ALRM} = sub { die "Net::NTP timed out geting NTP packet\n"; };
-    alarm($TIMEOUT);
-    $sock->recv($data,960)
-        or die "recv() failed: $!\n";
-    alarm(0)
-    };
+        eval {
+            local $SIG{ALRM} = sub { die "Net::NTP timed out geting NTP packet\n"; };
+            alarm($TIMEOUT);
+            $sock->recv($data, 960)
+              or die "recv() failed: $!\n";
+            alarm(0);
+        };
 
-    if($@){
-        die "$@";
+        if ($@) {
+            die "$@";
+        }
+
+        $CLIENT_TIME_RECEIVE = time() unless defined $CLIENT_TIME_RECEIVE;
+
+        my @ntp_fields = qw/byte1 stratum poll precision/;
+        push @ntp_fields, qw/delay delay_fb disp disp_fb ident/;
+        push @ntp_fields, qw/ref_time ref_time_fb/;
+        push @ntp_fields, qw/org_time org_time_fb/;
+        push @ntp_fields, qw/recv_time recv_time_fb/;
+        push @ntp_fields, qw/trans_time trans_time_fb/;
+
+        @tmp_pkt{@ntp_fields} = unpack("a C3   n B16 n B16 H8   N B32 N B32   N B32 N B32", $data);
+
+        @packet{@ntp_packet_fields} = (
+            (unpack("C", $tmp_pkt{byte1} & "\xC0") >> 6),
+            (unpack("C", $tmp_pkt{byte1} & "\x38") >> 3),
+            (unpack("C", $tmp_pkt{byte1} & "\x07")),
+            $tmp_pkt{stratum},
+            (sprintf("%0.4f", $tmp_pkt{poll})),
+            $tmp_pkt{precision} - 255,
+            ($bin2frac->($tmp_pkt{delay_fb})),
+            (sprintf("%0.4f", $tmp_pkt{disp})),
+            $unpack_ip->($tmp_pkt{stratum}, $tmp_pkt{ident}),
+            (($tmp_pkt{ref_time}   += $bin2frac->($tmp_pkt{ref_time_fb}))   -= NTP_ADJ),
+            (($tmp_pkt{org_time}   += $bin2frac->($tmp_pkt{org_time_fb}))),
+            (($tmp_pkt{recv_time}  += $bin2frac->($tmp_pkt{recv_time_fb}))  -= NTP_ADJ),
+            (($tmp_pkt{trans_time} += $bin2frac->($tmp_pkt{trans_time_fb})) -= NTP_ADJ)
+        );
+
+        return %packet;
     }
-
-    $CLIENT_TIME_RECEIVE = time() unless defined $CLIENT_TIME_RECEIVE;
-
-    my @ntp_fields = qw/byte1 stratum poll precision/;
-    push @ntp_fields, qw/delay delay_fb disp disp_fb ident/;
-    push @ntp_fields, qw/ref_time ref_time_fb/;
-    push @ntp_fields, qw/org_time org_time_fb/;
-    push @ntp_fields, qw/recv_time recv_time_fb/;
-    push @ntp_fields, qw/trans_time trans_time_fb/;
-
-    @tmp_pkt{@ntp_fields} =
-        unpack( "a C3   n B16 n B16 H8   N B32 N B32   N B32 N B32", $data ); 
-
-    @packet{@ntp_packet_fields} = (
-        (unpack( "C", $tmp_pkt{byte1} & "\xC0" ) >> 6),
-        (unpack( "C", $tmp_pkt{byte1} & "\x38" ) >> 3),
-        (unpack( "C", $tmp_pkt{byte1} & "\x07" )),
-        $tmp_pkt{stratum},
-        (sprintf("%0.4f", $tmp_pkt{poll})),
-        $tmp_pkt{precision} - 255,
-        ($bin2frac->($tmp_pkt{delay_fb})),
-        (sprintf("%0.4f", $tmp_pkt{disp})),
-        $unpack_ip->($tmp_pkt{stratum}, $tmp_pkt{ident}),
-        (($tmp_pkt{ref_time} += $bin2frac->($tmp_pkt{ref_time_fb})) -= NTP_ADJ),
-        (($tmp_pkt{org_time} += $bin2frac->($tmp_pkt{org_time_fb})) ),
-      (($tmp_pkt{recv_time} += $bin2frac->($tmp_pkt{recv_time_fb})) -= NTP_ADJ),
-     (($tmp_pkt{trans_time} += $bin2frac->($tmp_pkt{trans_time_fb})) -= NTP_ADJ)
-    );
-
-    return %packet;
-}
 
 }
 
