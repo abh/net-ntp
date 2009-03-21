@@ -1,0 +1,10 @@
+*~
+*.tar.gz
+._*
+.DS_Store
+.*.swp
+*.bak
+Makefile
+pm_to_blib
+blib
+
