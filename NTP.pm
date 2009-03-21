@@ -1,5 +1,4 @@
 package Net::NTP;
-#$Header: /home/cvs/Net-NTP/Net/NTP/NTP.pm,v 1.2 2004/02/23 17:53:47 jim Exp $
 
 use 5.008;
 use strict;
@@ -14,9 +13,7 @@ our @EXPORT = qw(
 	get_ntp_response
 );
 
-#hack found using Google; MessageID <3C955A7D.D12D160C@earthlink.net>
-#modified to give only a 2 digit version number
-our $VERSION = sprintf "%d.%d", q$Revision: 1.2 $ =~ /(\d+)\.(\d+)/g;
+our $VERSION = '1.2_50';
 
 our $CLIENT_TIME_SEND = undef;
 our $CLIENT_TIME_RECEIVE = undef;
@@ -228,18 +225,28 @@ Net::NTP - Perl extension for decoding NTP server responses
 =head1 ABSTRACT
 
 All this module does is send a packet to an NTP server and then decode
-the packet recieved into it's respective parts - as outlined in RFC1305 
-and RFC2030.
+the packet recieved into it's respective parts - as outlined in
+RFC1305 and RFC2030.
 
 =head1 DESCRIPTION
 
-This module exports a single method (get_ntp_response) and returns an associative array based upon RFC1305 and RFC2030.  The response from the server is "humanized" to a point that further processing of th information recieved from the server can be manipulated.  For example: timestamps are in epoch, so one could use the localtime function to produce an even more "human" representation of the timestamp.
+This module exports a single method (get_ntp_response) and returns an
+associative array based upon RFC1305 and RFC2030.  The response from
+the server is "humanized" to a point that further processing of th
+information recieved from the server can be manipulated.  For example:
+timestamps are in epoch, so one could use the localtime function to
+produce an even more "human" representation of the timestamp.
 
 =head2 EXPORT
 
 get_ntp_resonse(<server>, <port>);
 
-This module exports a single method - get_ntp_response.  It takes the server as the first argument (localhost is the default) and port to send/recieve the packets (ntp or 123 bu default).  It returns an associative array of the various parts of the packet as outlined in RFC1305.  It "normalizes" or "humanizes" various parts of the packet.  For example: all the timestamps are in epoch, NOT hexidecimal.
+This module exports a single method - get_ntp_response.  It takes the
+server as the first argument (localhost is the default) and port to
+send/recieve the packets (ntp or 123 bu default).  It returns an
+associative array of the various parts of the packet as outlined in
+RFC1305.  It "normalizes" or "humanizes" various parts of the packet.
+For example: all the timestamps are in epoch, NOT hexidecimal.
 
 =head1 SEE ALSO
 
@@ -247,24 +254,19 @@ perl, IO::Socket, RFC1305, RFC2030
 
 =head1 AUTHOR
 
-James G. Willmore, E<lt>jwillmore (at) adelphia.net<gt> or E<lt>owner (at) ljcomputing.net<gt>
+Now maintained by Ask Bjørn Hansen, E<lt>ask@develooper.com<gt>
 
-Special thanks to Ralf D. Kloth E<lt>ralf (at) qrq.de<gt> for the code to decode NTP packets.
+Originally by James G. Willmore, E<lt>jwillmore (at) adelphia.net<gt>
+or E<lt>owner (at) ljcomputing.net<gt>
+
+Special thanks to Ralf D. Kloth E<lt>ralf (at) qrq.de<gt> for the code
+to decode NTP packets.
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2004 by James G. Willmore
+Copyright 2009 by Ask Bjørn Hansen; 2004 by James G. Willmore
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself. 
-
-=head1 CHANGE LOG
-$Log: NTP.pm,v $
-Revision 1.2  2004/02/23 17:53:47  jim
-Modified regular expression used to produce version number.
-
-Revision 1.1.1.1  2004/02/23 17:11:44  jim
-Imported Net::NTP into CVS
-
 
 =cut
