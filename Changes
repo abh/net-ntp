@@ -1,11 +1,9 @@
 Revision history for Perl extension Net::NTP.
 
-0.01  Sat Feb 14 13:00:52 2004
-	- original version; created by h2xs 1.22 with options
-		-XAn Net::NTP
+   - Don't require Perl 5.8 (Cosimo Streppone, RT#13206)
 
-##IMPORTED TO CVS
-$Log: Changes,v $
-Revision 1.1.1.1  2004/02/23 17:13:10  jim
-Imported Net::NTP into CVS
+   - Run perltidy and move files around a bit in the distribution
+
+1.2  February 25, 2004
+   - Last release by James G Willmore
 
