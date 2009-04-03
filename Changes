@@ -1,5 +1,7 @@
 Revision history for Perl extension Net::NTP.
 
+   - Remove unused variables
+
    - Don't use `Carp`
 
    - Don't require Perl 5.8 (Cosimo Streppone, RT#13206)

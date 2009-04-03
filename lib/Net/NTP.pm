@@ -15,7 +15,6 @@ our @EXPORT = qw(
 our $VERSION = '1.2_50';
 
 our $CLIENT_TIME_SEND    = undef;
-our $CLIENT_TIME_RECEIVE = undef;
 
 our $TIMEOUT = 60,
 
@@ -170,8 +169,6 @@ our %LEAP_INDICATOR = (
         if ($@) {
             die "$@";
         }
-
-        $CLIENT_TIME_RECEIVE = time() unless defined $CLIENT_TIME_RECEIVE;
 
         my @ntp_fields = qw/byte1 stratum poll precision/;
         push @ntp_fields, qw/delay delay_fb disp disp_fb ident/;
