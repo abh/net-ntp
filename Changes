@@ -1,5 +1,7 @@
 Revision history for Perl extension Net::NTP.
 
+   - Don't reuse the "client timestamp" on all packages (Gordon M Lack, RT#38207)
+
    - Remove unused variables
 
    - Don't use `Carp`

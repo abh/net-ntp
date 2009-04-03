@@ -14,8 +14,6 @@ our @EXPORT = qw(
 
 our $VERSION = '1.2_50';
 
-our $CLIENT_TIME_SEND    = undef;
-
 our $TIMEOUT = 60,
 
   our %MODE = (
@@ -146,9 +144,7 @@ our %LEAP_INDICATOR = (
         my %packet;
         my $data;
 
-
-        $CLIENT_TIME_SEND = time() unless defined $CLIENT_TIME_SEND;
-        my $client_localtime      = $CLIENT_TIME_SEND;
+        my $client_localtime      = time;
         my $client_adj_localtime  = $client_localtime + NTP_ADJ;
         my $client_frac_localtime = $frac2bin->($client_adj_localtime);
 
