@@ -3,7 +3,6 @@ package Net::NTP;
 use 5.006;
 use strict;
 use warnings;
-use Carp;
 
 require Exporter;
 

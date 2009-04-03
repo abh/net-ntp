@@ -1,5 +1,7 @@
 Revision history for Perl extension Net::NTP.
 
+   - Don't use `Carp`
+
    - Don't require Perl 5.8 (Cosimo Streppone, RT#13206)
 
    - Run perltidy and move files around a bit in the distribution
