@@ -130,15 +130,22 @@ our %LEAP_INDICATOR = (
 
     sub get_ntp_response {
         use IO::Socket;
+        use constant HAVE_SOCKET_INET6 => eval { require IO::Socket::INET6 };
 
         my $host = shift || 'localhost';
         my $port = shift || 'ntp';
 
-        my $sock = IO::Socket::INET->new(
+        my %args = (
             Proto    => 'udp',
             PeerHost => $host,
-            PeerPort => $port
-        ) or die $@;
+            PeerPort => $port);
+        my $sock;
+        if (HAVE_SOCKET_INET6) {
+            $sock = IO::Socket::INET6->new(%args);
+        } else {
+            $sock = IO::Socket::INET->new(%args);
+        }
+        die $@ unless $sock;
 
         my %tmp_pkt;
         my %packet;
