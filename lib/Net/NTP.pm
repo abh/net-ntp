@@ -68,136 +68,138 @@ our %LEAP_INDICATOR = (
     '3' => 'alarm condition (clock not synchronized)'
 );
 
-    use constant NTP_ADJ => 2208988800;
+use constant NTP_ADJ => 2208988800;
 
-    my @ntp_packet_fields = (
-        'Leap Indicator',
-        'Version Number',
-        'Mode',
-        'Stratum',
-        'Poll Interval',
-        'Precision',
-        'Root Delay',
-        'Root Dispersion',
-        'Reference Clock Identifier',
-        'Reference Timestamp',
-        'Originate Timestamp',
-        'Receive Timestamp',
-        'Transmit Timestamp',
+my @ntp_packet_fields = (
+    'Leap Indicator',
+    'Version Number',
+    'Mode',
+    'Stratum',
+    'Poll Interval',
+    'Precision',
+    'Root Delay',
+    'Root Dispersion',
+    'Reference Clock Identifier',
+    'Reference Timestamp',
+    'Originate Timestamp',
+    'Receive Timestamp',
+    'Transmit Timestamp',
+);
+
+my $frac2bin = sub {
+    my $bin  = '';
+    my $frac = shift;
+    while (length($bin) < 32) {
+        $bin = $bin . int($frac * 2);
+        $frac = ($frac * 2) - (int($frac * 2));
+    }
+    return $bin;
+};
+
+my $bin2frac = sub {
+    my @bin = split '', shift;
+    my $frac = 0;
+    while (@bin) {
+        $frac = ($frac + pop @bin) / 2;
+    }
+    return $frac;
+};
+
+my $percision = sub {
+    my $number = shift;
+    if ($number > 127) {
+        $number -= 255;
+    }
+    return sprintf("%1.4e", 2**$number);
+};
+
+my $unpack_ip = sub {
+    my $ip;
+    my $stratum = shift;
+    my $tmp_ip  = shift;
+    if ($stratum < 2) {
+        $ip = unpack("A4", pack("H8", $tmp_ip));
+    }
+    else {
+        $ip = sprintf("%d.%d.%d.%d", unpack("C4", pack("H8", $tmp_ip)));
+    }
+    return $ip;
+};
+
+sub get_ntp_response {
+    use IO::Socket;
+    use constant HAVE_SOCKET_INET6 => eval { require IO::Socket::INET6 };
+
+    my $host = shift || 'localhost';
+    my $port = shift || 'ntp';
+
+    my %args = (
+        Proto    => 'udp',
+        PeerHost => $host,
+        PeerPort => $port
+    );
+    my $sock;
+    if (HAVE_SOCKET_INET6) {
+        $sock = IO::Socket::INET6->new(%args);
+    }
+    else {
+        $sock = IO::Socket::INET->new(%args);
+    }
+    die $@ unless $sock;
+
+    my %tmp_pkt;
+    my %packet;
+    my $data;
+
+    my $client_localtime      = time;
+    my $client_adj_localtime  = $client_localtime + NTP_ADJ;
+    my $client_frac_localtime = $frac2bin->($client_adj_localtime);
+
+    my $ntp_msg =
+      pack("B8 C3 N10 B32", '00011011', (0) x 12, int($client_localtime), $client_frac_localtime);
+
+    $sock->send($ntp_msg)
+      or die "send() failed: $!\n";
+
+    eval {
+        local $SIG{ALRM} = sub { die "Net::NTP timed out geting NTP packet\n"; };
+        alarm($TIMEOUT);
+        $sock->recv($data, 960)
+          or die "recv() failed: $!\n";
+        alarm(0);
+    };
+
+    if ($@) {
+        die "$@";
+    }
+
+    my @ntp_fields = qw/byte1 stratum poll precision/;
+    push @ntp_fields, qw/delay delay_fb disp disp_fb ident/;
+    push @ntp_fields, qw/ref_time ref_time_fb/;
+    push @ntp_fields, qw/org_time org_time_fb/;
+    push @ntp_fields, qw/recv_time recv_time_fb/;
+    push @ntp_fields, qw/trans_time trans_time_fb/;
+
+    @tmp_pkt{@ntp_fields} = unpack("a C3   n B16 n B16 H8   N B32 N B32   N B32 N B32", $data);
+
+    @packet{@ntp_packet_fields} = (
+        (unpack("C", $tmp_pkt{byte1} & "\xC0") >> 6),
+        (unpack("C", $tmp_pkt{byte1} & "\x38") >> 3),
+        (unpack("C", $tmp_pkt{byte1} & "\x07")),
+        $tmp_pkt{stratum},
+        (sprintf("%0.4f", $tmp_pkt{poll})),
+        $tmp_pkt{precision} - 255,
+        ($bin2frac->($tmp_pkt{delay_fb})),
+        (sprintf("%0.4f", $tmp_pkt{disp})),
+        $unpack_ip->($tmp_pkt{stratum}, $tmp_pkt{ident}),
+        (($tmp_pkt{ref_time}   += $bin2frac->($tmp_pkt{ref_time_fb}))   -= NTP_ADJ),
+        (($tmp_pkt{org_time}   += $bin2frac->($tmp_pkt{org_time_fb}))),
+        (($tmp_pkt{recv_time}  += $bin2frac->($tmp_pkt{recv_time_fb}))  -= NTP_ADJ),
+        (($tmp_pkt{trans_time} += $bin2frac->($tmp_pkt{trans_time_fb})) -= NTP_ADJ)
     );
 
-    my $frac2bin = sub {
-        my $bin  = '';
-        my $frac = shift;
-        while (length($bin) < 32) {
-            $bin = $bin . int($frac * 2);
-            $frac = ($frac * 2) - (int($frac * 2));
-        }
-        return $bin;
-    };
-
-    my $bin2frac = sub {
-        my @bin = split '', shift;
-        my $frac = 0;
-        while (@bin) {
-            $frac = ($frac + pop @bin) / 2;
-        }
-        return $frac;
-    };
-
-    my $percision = sub {
-        my $number = shift;
-        if ($number > 127) {
-            $number -= 255;
-        }
-        return sprintf("%1.4e", 2**$number);
-    };
-
-    my $unpack_ip = sub {
-        my $ip;
-        my $stratum = shift;
-        my $tmp_ip  = shift;
-        if ($stratum < 2) {
-            $ip = unpack("A4", pack("H8", $tmp_ip));
-        }
-        else {
-            $ip = sprintf("%d.%d.%d.%d", unpack("C4", pack("H8", $tmp_ip)));
-        }
-        return $ip;
-    };
-
-    sub get_ntp_response {
-        use IO::Socket;
-        use constant HAVE_SOCKET_INET6 => eval { require IO::Socket::INET6 };
-
-        my $host = shift || 'localhost';
-        my $port = shift || 'ntp';
-
-        my %args = (
-            Proto    => 'udp',
-            PeerHost => $host,
-            PeerPort => $port);
-        my $sock;
-        if (HAVE_SOCKET_INET6) {
-            $sock = IO::Socket::INET6->new(%args);
-        } else {
-            $sock = IO::Socket::INET->new(%args);
-        }
-        die $@ unless $sock;
-
-        my %tmp_pkt;
-        my %packet;
-        my $data;
-
-        my $client_localtime      = time;
-        my $client_adj_localtime  = $client_localtime + NTP_ADJ;
-        my $client_frac_localtime = $frac2bin->($client_adj_localtime);
-
-        my $ntp_msg = pack("B8 C3 N10 B32",
-            '00011011', (0) x 12, int($client_localtime), $client_frac_localtime);
-
-        $sock->send($ntp_msg)
-          or die "send() failed: $!\n";
-
-        eval {
-            local $SIG{ALRM} = sub { die "Net::NTP timed out geting NTP packet\n"; };
-            alarm($TIMEOUT);
-            $sock->recv($data, 960)
-              or die "recv() failed: $!\n";
-            alarm(0);
-        };
-
-        if ($@) {
-            die "$@";
-        }
-
-        my @ntp_fields = qw/byte1 stratum poll precision/;
-        push @ntp_fields, qw/delay delay_fb disp disp_fb ident/;
-        push @ntp_fields, qw/ref_time ref_time_fb/;
-        push @ntp_fields, qw/org_time org_time_fb/;
-        push @ntp_fields, qw/recv_time recv_time_fb/;
-        push @ntp_fields, qw/trans_time trans_time_fb/;
-
-        @tmp_pkt{@ntp_fields} = unpack("a C3   n B16 n B16 H8   N B32 N B32   N B32 N B32", $data);
-
-        @packet{@ntp_packet_fields} = (
-            (unpack("C", $tmp_pkt{byte1} & "\xC0") >> 6),
-            (unpack("C", $tmp_pkt{byte1} & "\x38") >> 3),
-            (unpack("C", $tmp_pkt{byte1} & "\x07")),
-            $tmp_pkt{stratum},
-            (sprintf("%0.4f", $tmp_pkt{poll})),
-            $tmp_pkt{precision} - 255,
-            ($bin2frac->($tmp_pkt{delay_fb})),
-            (sprintf("%0.4f", $tmp_pkt{disp})),
-            $unpack_ip->($tmp_pkt{stratum}, $tmp_pkt{ident}),
-            (($tmp_pkt{ref_time}   += $bin2frac->($tmp_pkt{ref_time_fb}))   -= NTP_ADJ),
-            (($tmp_pkt{org_time}   += $bin2frac->($tmp_pkt{org_time_fb}))),
-            (($tmp_pkt{recv_time}  += $bin2frac->($tmp_pkt{recv_time_fb}))  -= NTP_ADJ),
-            (($tmp_pkt{trans_time} += $bin2frac->($tmp_pkt{trans_time_fb})) -= NTP_ADJ)
-        );
-
-        return %packet;
-    }
+    return %packet;
+}
 
 
 1;
