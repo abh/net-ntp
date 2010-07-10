@@ -14,9 +14,9 @@ our @EXPORT = qw(
 
 our $VERSION = '1.2_50';
 
-our $TIMEOUT = 60,
+our $TIMEOUT = 60;
 
-  our %MODE = (
+our %MODE = (
     '0' => 'reserved',
     '1' => 'symmetric active',
     '2' => 'symmetric passive',
@@ -25,7 +25,7 @@ our $TIMEOUT = 60,
     '5' => 'broadcast',
     '6' => 'reserved for NTP control message',
     '7' => 'reserved for private use'
-  );
+);
 
 our %STRATUM = (
     '0' => 'unspecified or unavailable',
@@ -67,8 +67,6 @@ our %LEAP_INDICATOR = (
     '2' => 'last minute has 59 seconds)',
     '3' => 'alarm condition (clock not synchronized)'
 );
-
-{
 
     use constant NTP_ADJ => 2208988800;
 
@@ -201,7 +199,6 @@ our %LEAP_INDICATOR = (
         return %packet;
     }
 
-}
 
 1;
 __END__
