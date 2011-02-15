@@ -211,7 +211,7 @@ Net::NTP - Perl extension for decoding NTP server responses
 
 =head1 SYNOPSIS
 
-  use Net::NTP;
+  use Net::NTP qw(get_ntp_response);
   my %response = get_ntp_response();
 
 =head1 ABSTRACT
@@ -231,7 +231,7 @@ produce an even more "human" representation of the timestamp.
 
 =head2 EXPORT
 
-get_ntp_resonse(<server>, <port>);
+get_ntp_response(<server>, <port>);
 
 This module exports a single method - get_ntp_response.  It takes the
 server as the first argument (localhost is the default) and port to
