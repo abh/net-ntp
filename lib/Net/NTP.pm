@@ -12,7 +12,7 @@ our @EXPORT = qw(
   get_ntp_response
 );
 
-our $VERSION = '1.2_50';
+our $VERSION = '1.3';
 
 our $TIMEOUT = 60;
 

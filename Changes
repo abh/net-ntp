@@ -1,14 +1,13 @@
 Revision history for Perl extension Net::NTP.
 
+1.3  June 4, 2011
+   - Use IO::Socket::INET6 if available (Martin v. Löwis, RT#38234)
    - Don't reuse the "client timestamp" on all packets (Gordon M Lack, RT#38207)
-
    - Remove unused variables
-
    - Don't use `Carp`
-
    - Don't require Perl 5.8 (Cosimo Streppone, RT#13206)
-
    - Run perltidy and move files around a bit in the distribution
+
 
 1.2  February 25, 2004
    - Last release by James G Willmore
