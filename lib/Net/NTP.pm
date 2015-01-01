@@ -255,10 +255,16 @@ get_ntp_response(<server>, <port>);
 
 This module exports a single method - get_ntp_response.  It takes the
 server as the first argument (localhost is the default) and port to
-send/recieve the packets (ntp or 123 bu default).  It returns an
+send/recieve the packets (ntp or 123 by default).  It returns an
 associative array of the various parts of the packet as outlined in
 RFC1305.  It "normalizes" or "humanizes" various parts of the packet.
 For example: all the timestamps are in epoch, NOT hexidecimal.
+
+Two special fields (C<Delay> and C<Offset>) are calculated and added to
+the response.
+
+If there's a timeout or other communications error get_ntp_response
+will die (so call get_ntp_response in an eval block).
 
 =head1 SEE ALSO
 
