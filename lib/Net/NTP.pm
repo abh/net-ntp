@@ -172,8 +172,9 @@ sub get_ntp_response {
     };
     alarm 0;
 
+    my $client_recvtime = time;
+
     if (my $err = $@) {
-        warn "EVAL: $err";
         return if $err =~ m/^Net::NTP timed out/;
         die $err;
     }
@@ -202,6 +203,18 @@ sub get_ntp_response {
         (($tmp_pkt{recv_time}  += $bin2frac->($tmp_pkt{recv_time_fb}))  -= NTP_ADJ),
         (($tmp_pkt{trans_time} += $bin2frac->($tmp_pkt{trans_time_fb})) -= NTP_ADJ)
     );
+
+    my $dest_org   = sprintf "%0.5f", (($client_recvtime - $client_localtime));
+    my $recv_trans = sprintf "%0.5f", ($packet{'Receive Timestamp'} - $packet{'Transmit Timestamp'});
+    my $delay      = sprintf "%0.5f", ($dest_org + $recv_trans);
+
+    my $recv_org   = $packet{'Receive Timestamp'} - $client_recvtime;
+    my $trans_dest = $packet{'Transmit Timestamp'} - $client_localtime;
+    my $offset     = ($recv_org + $trans_dest) / 2;
+
+    # Calculated offset / delay
+    $packet{Offset} = $offset;
+    $packet{Delay}  = $delay;
 
     return %packet;
 }
