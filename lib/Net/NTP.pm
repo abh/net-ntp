@@ -12,7 +12,7 @@ our @EXPORT = qw(
   get_ntp_response
 );
 
-our $VERSION = '1.3';
+our $VERSION = '1.4';
 
 our $TIMEOUT = 60;
 
@@ -162,15 +162,18 @@ sub get_ntp_response {
       or die "send() failed: $!\n";
 
     eval {
-        local $SIG{ALRM} = sub { die "Net::NTP timed out geting NTP packet\n"; };
+        local $SIG{ALRM} = sub { die "Net::NTP timed out getting NTP packet\n"; };
         alarm($TIMEOUT);
         $sock->recv($data, 960)
           or die "recv() failed: $!\n";
         alarm(0);
     };
+    alarm 0;
 
-    if ($@) {
-        die "$@";
+    if (my $err = $@) {
+        warn "EVAL: $err";
+        return if $err =~ m/^Net::NTP timed out/;
+        die $err;
     }
 
     my @ntp_fields = qw/byte1 stratum poll precision/;
