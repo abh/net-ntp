@@ -1,5 +1,12 @@
 Revision history for Perl extension Net::NTP.
 
+1.4  January 1, 2015
+   - Add calculated 'Offset' and 'Delay' to response
+   - Fix ntp originate timestamp to be NTP epoch's
+   - Minor tweaks to improve timeouts
+   - Lower default timeout to 5 seconds
+   - Tiny refactor; make sure Time::HiRes is loaded
+
 1.3  June 4, 2011
    - Use IO::Socket::INET6 if available (Martin v. Löwis, RT#38234)
    - Don't reuse the "client timestamp" on all packets (Gordon M Lack, RT#38207)
