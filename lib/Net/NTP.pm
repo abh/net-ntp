@@ -1,8 +1,11 @@
 package Net::NTP;
-
-use 5.006;
+use 5.008;
 use strict;
 use warnings;
+
+use IO::Socket;
+use constant HAVE_SOCKET_INET6 => eval { require IO::Socket::INET6 };
+use Time::HiRes qw(time);
 
 require Exporter;
 
@@ -126,9 +129,8 @@ my $unpack_ip = sub {
     return $ip;
 };
 
+
 sub get_ntp_response {
-    use IO::Socket;
-    use constant HAVE_SOCKET_INET6 => eval { require IO::Socket::INET6 };
 
     my $host = shift || 'localhost';
     my $port = shift || 'ntp';
