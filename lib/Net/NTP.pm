@@ -186,7 +186,7 @@ sub get_ntp_response {
     push @ntp_fields, qw/recv_time recv_time_fb/;
     push @ntp_fields, qw/trans_time trans_time_fb/;
 
-    @tmp_pkt{@ntp_fields} = unpack("a C3   n B16 n B16 H8   N B32 N B32   N B32 N B32", $data);
+    @tmp_pkt{@ntp_fields} = unpack("a C2 c   n B16 n B16 H8   N B32 N B32   N B32 N B32", $data);
 
     @packet{@ntp_packet_fields} = (
         (unpack("C", $tmp_pkt{byte1} & "\xC0") >> 6),
@@ -194,7 +194,7 @@ sub get_ntp_response {
         (unpack("C", $tmp_pkt{byte1} & "\x07")),
         $tmp_pkt{stratum},
         (sprintf("%0.4f", $tmp_pkt{poll})),
-        $tmp_pkt{precision} - 255,
+        $tmp_pkt{precision},
         ($bin2frac->($tmp_pkt{delay_fb})),
         (sprintf("%0.4f", $tmp_pkt{disp})),
         $unpack_ip->($tmp_pkt{stratum}, $tmp_pkt{ident}),

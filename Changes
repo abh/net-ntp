@@ -1,5 +1,7 @@
 Revision history for Perl extension Net::NTP.
 
+   - Fix decoding of 'precision' field (RT#46000, Charles-Francois Natali)
+
 1.4  January 1, 2015
    - Add calculated 'Offset' and 'Delay' to response
    - Fix ntp originate timestamp to be NTP epoch's
