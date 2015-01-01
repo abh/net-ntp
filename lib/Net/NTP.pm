@@ -14,7 +14,7 @@ our @EXPORT = qw(
 
 our $VERSION = '1.4';
 
-our $TIMEOUT = 60;
+our $TIMEOUT = 5;
 
 our %MODE = (
     '0' => 'reserved',
