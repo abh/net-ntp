@@ -158,7 +158,7 @@ sub get_ntp_response {
     my $client_frac_localtime = $frac2bin->($client_adj_localtime);
 
     my $ntp_msg =
-      pack("B8 C3 N10 B32", '00011011', (0) x 12, int($client_localtime), $client_frac_localtime);
+      pack("B8 C3 N10 B32", '00011011', (0) x 12, int($client_adj_localtime), $client_frac_localtime);
 
     $sock->send($ntp_msg)
       or die "send() failed: $!\n";
@@ -198,7 +198,7 @@ sub get_ntp_response {
         (sprintf("%0.4f", $tmp_pkt{disp})),
         $unpack_ip->($tmp_pkt{stratum}, $tmp_pkt{ident}),
         (($tmp_pkt{ref_time}   += $bin2frac->($tmp_pkt{ref_time_fb}))   -= NTP_ADJ),
-        (($tmp_pkt{org_time}   += $bin2frac->($tmp_pkt{org_time_fb}))),
+        (($tmp_pkt{org_time}   += $bin2frac->($tmp_pkt{org_time_fb}))   -= NTP_ADJ),
         (($tmp_pkt{recv_time}  += $bin2frac->($tmp_pkt{recv_time_fb}))  -= NTP_ADJ),
         (($tmp_pkt{trans_time} += $bin2frac->($tmp_pkt{trans_time_fb})) -= NTP_ADJ)
     );
