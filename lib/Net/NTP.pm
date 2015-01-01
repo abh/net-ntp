@@ -223,6 +223,8 @@ sub get_ntp_response {
 1;
 __END__
 
+=encoding utf8
+
 =head1 NAME
 
 Net::NTP - Perl extension for decoding NTP server responses
