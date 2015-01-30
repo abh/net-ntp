@@ -108,14 +108,6 @@ my $bin2frac = sub {
     return $frac;
 };
 
-my $percision = sub {
-    my $number = shift;
-    if ($number > 127) {
-        $number -= 255;
-    }
-    return sprintf("%1.4e", 2**$number);
-};
-
 my $unpack_ip = sub {
     my $ip;
     my $stratum = shift;
