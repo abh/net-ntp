@@ -1,6 +1,7 @@
 Revision history for Perl extension Net::NTP.
 
-   - Expose Net::NTP::Packet to it more practical to do i/o elsewhere
+   - Expose Net::NTP::Packet so it is more practical to delegate i/o to a
+     different code
    - Major code cleanups
 
 1.5

@@ -230,7 +230,7 @@ RFC5905 (superseding RFC1305 and RFC2030).
 
 =head1 LIMITATIONS
 
-This only supports Association Mode 4 (Client).
+This only supports Association Mode 3 (Client).
 
 =head1 DESCRIPTION
 
