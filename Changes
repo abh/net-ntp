@@ -1,5 +1,10 @@
 Revision history for Perl extension Net::NTP.
 
+   - Expose Net::NTP::Packet so it is more practical to delegate i/o to a
+     different code
+   - Major code cleanups
+
+1.5
    - Fix decoding of 'precision' field (RT#46000, Charles-Francois Natali)
 
 1.4  January 1, 2015
