@@ -15,7 +15,7 @@ our @EXPORT = qw(
   get_ntp_response
 );
 
-our $VERSION = '1.4';
+our $VERSION = '1.5';
 
 our $TIMEOUT = 5;
 
